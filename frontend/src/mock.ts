@@ -1,16 +1,91 @@
-import type { Assignment, Course } from './types'
+import type { Assignment, Course } from "./types";
 
 export const courses: Course[] = [
-  { id: 1, title: 'Fullstack-разработка', description: 'Практика React, FastAPI и проектирование веб-приложений.', accent: '#51657e' },
-  { id: 2, title: 'Базы данных', description: 'Реляционная модель, SQL и проектирование схем данных.', accent: '#7a6861' },
-  { id: 3, title: 'Компьютерные сети', description: 'Сетевые протоколы и архитектура распределённых систем.', accent: '#647465' },
-]
+  {
+    id: 1,
+    title: "Fullstack-разработка",
+    description: "Практика React, FastAPI и проектирование веб-приложений.",
+    accent: "#51657e",
+  },
+  {
+    id: 2,
+    title: "Базы данных",
+    description: "Реляционная модель, SQL и проектирование схем данных.",
+    accent: "#7a6861",
+  },
+  {
+    id: 3,
+    title: "Компьютерные сети",
+    description: "Сетевые протоколы и архитектура распределённых систем.",
+    accent: "#647465",
+  },
+];
 
 export const assignments: Assignment[] = [
-  { id: 1, courseId: 1, title: 'Лабораторная работа №1', description: 'Каркас интерфейса LabTracker и маршрутизация экранов.', type: 'lab', status: 'in_progress', deadline: '2026-09-14T18:00:00', maxGrade: 10, grade: null },
-  { id: 2, courseId: 1, title: 'Домашнее задание: REST API', description: 'Спроектировать контракт API для трекера.', type: 'homework', status: 'not_started', deadline: '2026-09-17T23:59:00', maxGrade: 10, grade: null },
-  { id: 3, courseId: 2, title: 'Лабораторная работа №2', description: 'Нормализация таблиц и SQL-запросы.', type: 'lab', status: 'submitted', deadline: '2026-09-08T18:00:00', maxGrade: 10, grade: null },
-  { id: 4, courseId: 2, title: 'Контрольная работа', description: 'Ключи, индексы и транзакции.', type: 'other', status: 'graded', deadline: '2026-09-05T10:00:00', maxGrade: 20, grade: 18.5 },
-  { id: 5, courseId: 3, title: 'Домашнее задание: TCP/IP', description: 'Краткий разбор модели TCP/IP.', type: 'homework', status: 'in_progress', deadline: '2026-09-09T23:59:00', maxGrade: 10, grade: null },
-  { id: 6, courseId: 3, title: 'Лабораторная работа №1', description: 'Анализ трафика в локальной сети.', type: 'lab', status: 'not_started', deadline: '2026-09-25T18:00:00', maxGrade: 10, grade: null },
-]
+  {
+    id: 1,
+    courseId: 1,
+    title: "Лабораторная работа №1",
+    description: "Каркас интерфейса LabTracker и маршрутизация экранов.",
+    type: "lab",
+    status: "in_progress",
+    deadline: "2026-09-14T18:00:00",
+    maxGrade: 10,
+    grade: null,
+  },
+  {
+    id: 2,
+    courseId: 1,
+    title: "Домашнее задание: REST API",
+    description: "Спроектировать контракт API для трекера.",
+    type: "homework",
+    status: "not_started",
+    deadline: "2026-09-17T23:59:00",
+    maxGrade: 10,
+    grade: null,
+  },
+  {
+    id: 3,
+    courseId: 2,
+    title: "Лабораторная работа №2",
+    description: "Нормализация таблиц и SQL-запросы.",
+    type: "lab",
+    status: "submitted",
+    deadline: "2026-09-08T18:00:00",
+    maxGrade: 10,
+    grade: null,
+  },
+  {
+    id: 4,
+    courseId: 2,
+    title: "Контрольная работа",
+    description: "Ключи, индексы и транзакции.",
+    type: "other",
+    status: "graded",
+    deadline: "2026-09-05T10:00:00",
+    maxGrade: 20,
+    grade: 18.5,
+  },
+  {
+    id: 5,
+    courseId: 3,
+    title: "Домашнее задание: TCP/IP",
+    description: "Краткий разбор модели TCP/IP.",
+    type: "homework",
+    status: "in_progress",
+    deadline: "2026-09-09T23:59:00",
+    maxGrade: 10,
+    grade: null,
+  },
+  {
+    id: 6,
+    courseId: 3,
+    title: "Лабораторная работа №1",
+    description: "Анализ трафика в локальной сети.",
+    type: "lab",
+    status: "not_started",
+    deadline: "2026-09-25T18:00:00",
+    maxGrade: 10,
+    grade: null,
+  },
+];

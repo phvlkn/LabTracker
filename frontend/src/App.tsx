@@ -1,57 +1,577 @@
-import { useMemo, useState } from 'react'
-import { Link, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BrowserRouter } from 'react-router-dom'
-import { App as AntApp, Button, DatePicker, Empty, Form, Input, Layout, List, Modal, Select, Space, Tag } from 'antd'
-import { ArrowLeftOutlined, BookOutlined, CalendarOutlined, DeleteOutlined, EditOutlined, FileAddOutlined, PlusOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
-import { assignments, courses } from './mock'
-import type { Assignment, AssignmentStatus, AssignmentType, Course } from './types'
+import { useMemo, useState } from "react";
+import {
+  Link,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
+import {
+  App as AntApp,
+  Button,
+  DatePicker,
+  Empty,
+  Form,
+  Input,
+  Layout,
+  List,
+  Modal,
+  Select,
+  Space,
+  Tag,
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  BookOutlined,
+  CalendarOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  FileAddOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import { assignments, courses } from "./mock";
+import type {
+  Assignment,
+  AssignmentStatus,
+  AssignmentType,
+  Course,
+} from "./types";
 
 const statusInfo: Record<AssignmentStatus, { label: string; color: string }> = {
-  not_started: { label: 'Не начато', color: 'default' }, in_progress: { label: 'В работе', color: 'processing' }, submitted: { label: 'Сдано', color: 'success' }, graded: { label: 'Оценено', color: 'purple' },
-}
-const typeInfo: Record<AssignmentType, string> = { lab: 'Лабораторная', homework: 'Домашнее', other: 'Прочее' }
-const formatDate = (date: string | null) => date ? dayjs(date).format('D MMMM, HH:mm') : 'Без дедлайна'
-const isOverdue = (item: Assignment) => Boolean(item.deadline && dayjs(item.deadline).isBefore(dayjs()) && !['submitted', 'graded'].includes(item.status))
+  not_started: { label: "Не начато", color: "default" },
+  in_progress: { label: "В работе", color: "processing" },
+  submitted: { label: "Сдано", color: "success" },
+  graded: { label: "Оценено", color: "purple" },
+};
+const typeInfo: Record<AssignmentType, string> = {
+  lab: "Лабораторная",
+  homework: "Домашнее",
+  other: "Прочее",
+};
+const formatDate = (date: string | null) =>
+  date ? dayjs(date).format("D MMMM, HH:mm") : "Без дедлайна";
+const isOverdue = (item: Assignment) =>
+  Boolean(
+    item.deadline &&
+      dayjs(item.deadline).isBefore(dayjs()) &&
+      !["submitted", "graded"].includes(item.status),
+  );
 
 function AssignmentTags({ item }: { item: Assignment }) {
-  return <Space size={[6, 6]} wrap><Tag>{typeInfo[item.type]}</Tag><Tag color={statusInfo[item.status].color}>{statusInfo[item.status].label}</Tag>{isOverdue(item) && <Tag color="error">Просрочено</Tag>}</Space>
+  return (
+    <Space size={[6, 6]} wrap>
+      <Tag>{typeInfo[item.type]}</Tag>
+      <Tag color={statusInfo[item.status].color}>
+        {statusInfo[item.status].label}
+      </Tag>
+      {isOverdue(item) && <Tag color="error">Просрочено</Tag>}
+    </Space>
+  );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  const location = useLocation()
-  const title = location.pathname === '/' ? 'Сводка' : location.pathname.startsWith('/courses') ? 'Курсы' : 'Задания'
-  return <Layout className="app-shell">
-    <header className="topbar"><Link to="/" className="brand"><span className="brand-mark">L</span><span>LabTracker</span></Link><nav><NavLink to="/" end>Сводка</NavLink><NavLink to="/courses">Курсы</NavLink><NavLink to="/assignments">Задания</NavLink></nav><div className="profile">ЕС</div></header>
-    <main className="page"><div className="page-title"><div><p className="eyebrow">Учебный семестр · осень 2026</p><h1>{title}</h1></div><p className="muted">Демонстрационный интерфейс</p></div>{children}</main>
-  </Layout>
+  const location = useLocation();
+  const title =
+    location.pathname === "/"
+      ? "Сводка"
+      : location.pathname.startsWith("/courses")
+        ? "Курсы"
+        : "Задания";
+  return (
+    <Layout className="app-shell">
+      <header className="topbar">
+        <Link to="/" className="brand">
+          <span className="brand-mark">L</span>
+          <span>LabTracker</span>
+        </Link>
+        <nav>
+          <NavLink to="/" end>
+            Сводка
+          </NavLink>
+          <NavLink to="/courses">Курсы</NavLink>
+          <NavLink to="/assignments">Задания</NavLink>
+        </nav>
+        <div className="profile">ЕС</div>
+      </header>
+      <main className="page">
+        <div className="page-title">
+          <div>
+            <p className="eyebrow">Учебный семестр · осень 2026</p>
+            <h1>{title}</h1>
+          </div>
+          <p className="muted">Демонстрационный интерфейс</p>
+        </div>
+        {children}
+      </main>
+    </Layout>
+  );
 }
 
 function Dashboard() {
-  const stats = useMemo(() => ({ active: assignments.filter(a => a.status === 'in_progress').length, due: assignments.filter(isOverdue).length, done: assignments.filter(a => ['submitted', 'graded'].includes(a.status)).length }), [])
-  const upcoming = assignments.filter(a => a.deadline && dayjs(a.deadline).isAfter(dayjs())).sort((a,b) => dayjs(a.deadline).valueOf() - dayjs(b.deadline).valueOf()).slice(0, 4)
-  const overdue = assignments.filter(isOverdue)
-  return <div className="dashboard">
-    <section className="welcome"><div><p className="eyebrow">План на неделю</p><h2>Спокойно, всё под контролем.</h2><p>Следите за сроками, работами и результатами в одном месте.</p></div><Link to="/assignments/new"><Button type="primary" icon={<PlusOutlined />}>Добавить задание</Button></Link></section>
-    <section className="metrics"><Metric value={stats.active} label="в работе"/><Metric value={stats.due} label="просрочено" danger/><Metric value={stats.done} label="сдано и оценено"/></section>
-    <section className="content-grid"><Panel title="Ближайшие дедлайны" action={<Link to="/assignments">Все задания</Link>}><AssignmentList items={upcoming}/></Panel><Panel title="Просроченные" action={<span className="danger-text">Требуют внимания</span>}><AssignmentList items={overdue} empty="Нет просроченных работ"/></Panel></section>
-    <Panel title="Курсы" action={<Link to="/courses">Открыть курсы</Link>}><div className="course-row">{courses.map(c => <Link to={`/courses/${c.id}`} className="mini-course" key={c.id}><span style={{ background: c.accent }}></span><div><b>{c.title}</b><small>{assignments.filter(a => a.courseId === c.id).length} задания</small></div></Link>)}</div></Panel>
-  </div>
+  const stats = useMemo(
+    () => ({
+      active: assignments.filter((a) => a.status === "in_progress").length,
+      due: assignments.filter(isOverdue).length,
+      done: assignments.filter((a) =>
+        ["submitted", "graded"].includes(a.status),
+      ).length,
+    }),
+    [],
+  );
+  const upcoming = assignments
+    .filter((a) => a.deadline && dayjs(a.deadline).isAfter(dayjs()))
+    .sort((a, b) => dayjs(a.deadline).valueOf() - dayjs(b.deadline).valueOf())
+    .slice(0, 4);
+  const overdue = assignments.filter(isOverdue);
+  return (
+    <div className="dashboard">
+      <section className="welcome">
+        <div>
+          <p className="eyebrow">План на неделю</p>
+          <h2>Спокойно, всё под контролем.</h2>
+          <p>Следите за сроками, работами и результатами в одном месте.</p>
+        </div>
+        <Link to="/assignments/new">
+          <Button type="primary" icon={<PlusOutlined />}>
+            Добавить задание
+          </Button>
+        </Link>
+      </section>
+      <section className="metrics">
+        <Metric value={stats.active} label="в работе" />
+        <Metric value={stats.due} label="просрочено" danger />
+        <Metric value={stats.done} label="сдано и оценено" />
+      </section>
+      <section className="content-grid">
+        <Panel
+          title="Ближайшие дедлайны"
+          action={<Link to="/assignments">Все задания</Link>}
+        >
+          <AssignmentList items={upcoming} />
+        </Panel>
+        <Panel
+          title="Просроченные"
+          action={<span className="danger-text">Требуют внимания</span>}
+        >
+          <AssignmentList items={overdue} empty="Нет просроченных работ" />
+        </Panel>
+      </section>
+      <Panel title="Курсы" action={<Link to="/courses">Открыть курсы</Link>}>
+        <div className="course-row">
+          {courses.map((c) => (
+            <Link to={`/courses/${c.id}`} className="mini-course" key={c.id}>
+              <span style={{ background: c.accent }}></span>
+              <div>
+                <b>{c.title}</b>
+                <small>
+                  {assignments.filter((a) => a.courseId === c.id).length}{" "}
+                  задания
+                </small>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Panel>
+    </div>
+  );
 }
-function Metric({ value, label, danger }: { value: number; label: string; danger?: boolean }) { return <div className={`metric ${danger ? 'metric-danger' : ''}`}><strong>{value}</strong><span>{label}</span></div> }
-function Panel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) { return <section className="panel"><div className="panel-head"><h2>{title}</h2>{action}</div>{children}</section> }
-function AssignmentList({ items, empty }: { items: Assignment[]; empty?: string }) { return items.length ? <List className="assignment-list" dataSource={items} renderItem={item => <List.Item><Link to={`/assignments/${item.id}`} className="assignment-row"><div><b>{item.title}</b><span>{courses.find(c => c.id === item.courseId)?.title} · <CalendarOutlined /> {formatDate(item.deadline)}</span></div><AssignmentTags item={item}/></Link></List.Item>}/> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={empty ?? 'Заданий пока нет'} /> }
+function Metric({
+  value,
+  label,
+  danger,
+}: {
+  value: number;
+  label: string;
+  danger?: boolean;
+}) {
+  return (
+    <div className={`metric ${danger ? "metric-danger" : ""}`}>
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+function Panel({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="panel">
+      <div className="panel-head">
+        <h2>{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+function AssignmentList({
+  items,
+  empty,
+}: {
+  items: Assignment[];
+  empty?: string;
+}) {
+  return items.length ? (
+    <List
+      className="assignment-list"
+      dataSource={items}
+      renderItem={(item) => (
+        <List.Item>
+          <Link to={`/assignments/${item.id}`} className="assignment-row">
+            <div>
+              <b>{item.title}</b>
+              <span>
+                {courses.find((c) => c.id === item.courseId)?.title} ·{" "}
+                <CalendarOutlined /> {formatDate(item.deadline)}
+              </span>
+            </div>
+            <AssignmentTags item={item} />
+          </Link>
+        </List.Item>
+      )}
+    />
+  ) : (
+    <Empty
+      image={Empty.PRESENTED_IMAGE_SIMPLE}
+      description={empty ?? "Заданий пока нет"}
+    />
+  );
+}
 
-function CoursesPage() { return <><div className="page-actions"><p>Все учебные курсы и закреплённые за ними работы.</p><CourseModal trigger={<Button type="primary" icon={<PlusOutlined />}>Новый курс</Button>}/></div><div className="course-grid">{courses.map(course => <article className="course-card" key={course.id}><div className="course-card-line" style={{ background: course.accent }}/><div className="course-card-body"><span className="course-icon"><BookOutlined /></span><h2>{course.title}</h2><p>{course.description}</p><div className="course-card-foot"><span>{assignments.filter(a => a.courseId === course.id).length} задания</span><Link to={`/courses/${course.id}`}>Открыть →</Link></div></div></article>)}</div></> }
-function CourseModal({ trigger }: { trigger: React.ReactNode }) { const [open, setOpen] = useState(false); return <><span onClick={() => setOpen(true)}>{trigger}</span><Modal open={open} title="Новый курс" onCancel={() => setOpen(false)} footer={<Button type="primary" onClick={() => setOpen(false)}>Сохранить</Button>}><Form layout="vertical"><Form.Item label="Название курса" required><Input placeholder="Например, Базы данных"/></Form.Item><Form.Item label="Описание"><Input.TextArea rows={3} placeholder="Кратко опишите курс"/></Form.Item></Form></Modal></> }
+function CoursesPage() {
+  return (
+    <>
+      <div className="page-actions">
+        <p>Все учебные курсы и закреплённые за ними работы.</p>
+        <CourseModal
+          trigger={
+            <Button type="primary" icon={<PlusOutlined />}>
+              Новый курс
+            </Button>
+          }
+        />
+      </div>
+      <div className="course-grid">
+        {courses.map((course) => (
+          <article className="course-card" key={course.id}>
+            <div
+              className="course-card-line"
+              style={{ background: course.accent }}
+            />
+            <div className="course-card-body">
+              <span className="course-icon">
+                <BookOutlined />
+              </span>
+              <h2>{course.title}</h2>
+              <p>{course.description}</p>
+              <div className="course-card-foot">
+                <span>
+                  {assignments.filter((a) => a.courseId === course.id).length}{" "}
+                  задания
+                </span>
+                <Link to={`/courses/${course.id}`}>Открыть →</Link>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </>
+  );
+}
+function CourseModal({ trigger }: { trigger: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <span onClick={() => setOpen(true)}>{trigger}</span>
+      <Modal
+        open={open}
+        title="Новый курс"
+        onCancel={() => setOpen(false)}
+        footer={
+          <Button type="primary" onClick={() => setOpen(false)}>
+            Сохранить
+          </Button>
+        }
+      >
+        <Form layout="vertical">
+          <Form.Item label="Название курса" required>
+            <Input placeholder="Например, Базы данных" />
+          </Form.Item>
+          <Form.Item label="Описание">
+            <Input.TextArea rows={3} placeholder="Кратко опишите курс" />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
+  );
+}
 
-function CourseDetails() { const { id } = useParams(); const course = courses.find(c => c.id === Number(id)); const items = assignments.filter(a => a.courseId === Number(id)); if (!course) return <Empty description="Курс не найден"/>; return <><Link to="/courses" className="back"><ArrowLeftOutlined /> Все курсы</Link><section className="course-hero"><span className="hero-square" style={{ background: course.accent }}><BookOutlined /></span><div><p className="eyebrow">Курс</p><h2>{course.title}</h2><p>{course.description}</p></div><div className="hero-actions"><Button icon={<EditOutlined />}>Изменить</Button><Button danger icon={<DeleteOutlined />}>Удалить</Button></div></section><Panel title="Задания курса" action={<Link to="/assignments/new"><Button type="primary" icon={<PlusOutlined />}>Добавить задание</Button></Link>}><AssignmentList items={items}/></Panel></> }
+function CourseDetails() {
+  const { id } = useParams();
+  const course = courses.find((c) => c.id === Number(id));
+  const items = assignments.filter((a) => a.courseId === Number(id));
+  if (!course) return <Empty description="Курс не найден" />;
+  return (
+    <>
+      <Link to="/courses" className="back">
+        <ArrowLeftOutlined /> Все курсы
+      </Link>
+      <section className="course-hero">
+        <span className="hero-square" style={{ background: course.accent }}>
+          <BookOutlined />
+        </span>
+        <div>
+          <p className="eyebrow">Курс</p>
+          <h2>{course.title}</h2>
+          <p>{course.description}</p>
+        </div>
+        <div className="hero-actions">
+          <Button icon={<EditOutlined />}>Изменить</Button>
+          <Button danger icon={<DeleteOutlined />}>
+            Удалить
+          </Button>
+        </div>
+      </section>
+      <Panel
+        title="Задания курса"
+        action={
+          <Link to="/assignments/new">
+            <Button type="primary" icon={<PlusOutlined />}>
+              Добавить задание
+            </Button>
+          </Link>
+        }
+      >
+        <AssignmentList items={items} />
+      </Panel>
+    </>
+  );
+}
 
-function AssignmentsPage() { const [type, setType] = useState<string>(); const [status, setStatus] = useState<string>(); const [course, setCourse] = useState<string>(); const shown = assignments.filter(a => (!type || a.type === type) && (!status || a.status === status) && (!course || a.courseId === Number(course))); return <><div className="page-actions"><p>Работы по всем курсам, сроки и текущий прогресс.</p><Link to="/assignments/new"><Button type="primary" icon={<PlusOutlined />}>Новое задание</Button></Link></div><div className="filters"><Select allowClear placeholder="Все курсы" value={course} onChange={setCourse} options={courses.map(c => ({ value: String(c.id), label: c.title }))}/><Select allowClear placeholder="Все статусы" value={status} onChange={setStatus} options={Object.entries(statusInfo).map(([value, info]) => ({value, label: info.label}))}/><Select allowClear placeholder="Все типы" value={type} onChange={setType} options={Object.entries(typeInfo).map(([value, label]) => ({value, label}))}/></div><Panel title={`Найдено: ${shown.length}`}><AssignmentList items={shown}/></Panel></> }
+function AssignmentsPage() {
+  const [type, setType] = useState<string>();
+  const [status, setStatus] = useState<string>();
+  const [course, setCourse] = useState<string>();
+  const shown = assignments.filter(
+    (a) =>
+      (!type || a.type === type) &&
+      (!status || a.status === status) &&
+      (!course || a.courseId === Number(course)),
+  );
+  return (
+    <>
+      <div className="page-actions">
+        <p>Работы по всем курсам, сроки и текущий прогресс.</p>
+        <Link to="/assignments/new">
+          <Button type="primary" icon={<PlusOutlined />}>
+            Новое задание
+          </Button>
+        </Link>
+      </div>
+      <div className="filters">
+        <Select
+          allowClear
+          placeholder="Все курсы"
+          value={course}
+          onChange={setCourse}
+          options={courses.map((c) => ({
+            value: String(c.id),
+            label: c.title,
+          }))}
+        />
+        <Select
+          allowClear
+          placeholder="Все статусы"
+          value={status}
+          onChange={setStatus}
+          options={Object.entries(statusInfo).map(([value, info]) => ({
+            value,
+            label: info.label,
+          }))}
+        />
+        <Select
+          allowClear
+          placeholder="Все типы"
+          value={type}
+          onChange={setType}
+          options={Object.entries(typeInfo).map(([value, label]) => ({
+            value,
+            label,
+          }))}
+        />
+      </div>
+      <Panel title={`Найдено: ${shown.length}`}>
+        <AssignmentList items={shown} />
+      </Panel>
+    </>
+  );
+}
 
-function AssignmentDetails() { const { id } = useParams(); const item = assignments.find(a => a.id === Number(id)); const navigate = useNavigate(); if (!item) return <Empty description="Задание не найден"/>; const course = courses.find(c => c.id === item.courseId); return <><Link to="/assignments" className="back"><ArrowLeftOutlined /> Все задания</Link><article className="assignment-detail"><div className="detail-heading"><div><p className="eyebrow">{course?.title}</p><h2>{item.title}</h2><AssignmentTags item={item}/></div><Space><Button icon={<EditOutlined />} onClick={() => navigate(`/assignments/${item.id}/edit`)}>Изменить</Button><Button danger icon={<DeleteOutlined />}>Удалить</Button></Space></div><div className="detail-grid"><div><p className="detail-label">Описание</p><p>{item.description}</p></div><div><p className="detail-label">Дедлайн</p><p>{formatDate(item.deadline)}</p></div><div><p className="detail-label">Оценка</p><p>{item.grade ?? 'Не выставлена'} <span className="muted">из {item.maxGrade}</span></p></div></div></article></> }
+function AssignmentDetails() {
+  const { id } = useParams();
+  const item = assignments.find((a) => a.id === Number(id));
+  const navigate = useNavigate();
+  if (!item) return <Empty description="Задание не найден" />;
+  const course = courses.find((c) => c.id === item.courseId);
+  return (
+    <>
+      <Link to="/assignments" className="back">
+        <ArrowLeftOutlined /> Все задания
+      </Link>
+      <article className="assignment-detail">
+        <div className="detail-heading">
+          <div>
+            <p className="eyebrow">{course?.title}</p>
+            <h2>{item.title}</h2>
+            <AssignmentTags item={item} />
+          </div>
+          <Space>
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => navigate(`/assignments/${item.id}/edit`)}
+            >
+              Изменить
+            </Button>
+            <Button danger icon={<DeleteOutlined />}>
+              Удалить
+            </Button>
+          </Space>
+        </div>
+        <div className="detail-grid">
+          <div>
+            <p className="detail-label">Описание</p>
+            <p>{item.description}</p>
+          </div>
+          <div>
+            <p className="detail-label">Дедлайн</p>
+            <p>{formatDate(item.deadline)}</p>
+          </div>
+          <div>
+            <p className="detail-label">Оценка</p>
+            <p>
+              {item.grade ?? "Не выставлена"}{" "}
+              <span className="muted">из {item.maxGrade}</span>
+            </p>
+          </div>
+        </div>
+      </article>
+    </>
+  );
+}
 
-function AssignmentForm() { const { id } = useParams(); const editing = Boolean(id); return <><Link to={editing ? `/assignments/${id}` : '/assignments'} className="back"><ArrowLeftOutlined /> Назад</Link><section className="form-card"><div><p className="eyebrow">{editing ? 'Редактирование' : 'Новое задание'}</p><h2>{editing ? 'Изменить задание' : 'Добавить задание'}</h2><p className="muted">Демо-форма; сохранение будет подключено к API в ЛР №5.</p></div><Form layout="vertical" requiredMark="optional"><div className="form-grid"><Form.Item label="Название" required><Input defaultValue={editing ? assignments.find(a => a.id === Number(id))?.title : ''} placeholder="Например, Лабораторная работа №2"/></Form.Item><Form.Item label="Курс" required><Select placeholder="Выберите курс" options={courses.map(c => ({value: c.id, label: c.title}))}/></Form.Item><Form.Item label="Тип работы"><Select defaultValue="lab" options={Object.entries(typeInfo).map(([value, label]) => ({value, label}))}/></Form.Item><Form.Item label="Статус"><Select defaultValue="not_started" options={Object.entries(statusInfo).map(([value, info]) => ({value, label: info.label}))}/></Form.Item><Form.Item label="Дедлайн"><DatePicker showTime placeholder="Выберите дату"/></Form.Item><Form.Item label="Максимальная оценка"><Input type="number" defaultValue={10}/></Form.Item></div><Form.Item label="Описание"><Input.TextArea rows={4} placeholder="Что требуется выполнить"/></Form.Item><Space><Button type="primary" icon={<FileAddOutlined />}>Сохранить</Button><Link to="/assignments"><Button>Отмена</Button></Link></Space></Form></section></> }
+function AssignmentForm() {
+  const { id } = useParams();
+  const editing = Boolean(id);
+  return (
+    <>
+      <Link
+        to={editing ? `/assignments/${id}` : "/assignments"}
+        className="back"
+      >
+        <ArrowLeftOutlined /> Назад
+      </Link>
+      <section className="form-card">
+        <div>
+          <p className="eyebrow">
+            {editing ? "Редактирование" : "Новое задание"}
+          </p>
+          <h2>{editing ? "Изменить задание" : "Добавить задание"}</h2>
+          <p className="muted">
+            Демо-форма; сохранение будет подключено к API в ЛР №5.
+          </p>
+        </div>
+        <Form layout="vertical" requiredMark="optional">
+          <div className="form-grid">
+            <Form.Item label="Название" required>
+              <Input
+                defaultValue={
+                  editing
+                    ? assignments.find((a) => a.id === Number(id))?.title
+                    : ""
+                }
+                placeholder="Например, Лабораторная работа №2"
+              />
+            </Form.Item>
+            <Form.Item label="Курс" required>
+              <Select
+                placeholder="Выберите курс"
+                options={courses.map((c) => ({ value: c.id, label: c.title }))}
+              />
+            </Form.Item>
+            <Form.Item label="Тип работы">
+              <Select
+                defaultValue="lab"
+                options={Object.entries(typeInfo).map(([value, label]) => ({
+                  value,
+                  label,
+                }))}
+              />
+            </Form.Item>
+            <Form.Item label="Статус">
+              <Select
+                defaultValue="not_started"
+                options={Object.entries(statusInfo).map(([value, info]) => ({
+                  value,
+                  label: info.label,
+                }))}
+              />
+            </Form.Item>
+            <Form.Item label="Дедлайн">
+              <DatePicker showTime placeholder="Выберите дату" />
+            </Form.Item>
+            <Form.Item label="Максимальная оценка">
+              <Input type="number" defaultValue={10} />
+            </Form.Item>
+          </div>
+          <Form.Item label="Описание">
+            <Input.TextArea rows={4} placeholder="Что требуется выполнить" />
+          </Form.Item>
+          <Space>
+            <Button type="primary" icon={<FileAddOutlined />}>
+              Сохранить
+            </Button>
+            <Link to="/assignments">
+              <Button>Отмена</Button>
+            </Link>
+          </Space>
+        </Form>
+      </section>
+    </>
+  );
+}
 
-function AppRoutes() { return <Shell><Routes><Route path="/" element={<Dashboard/>}/><Route path="/courses" element={<CoursesPage/>}/><Route path="/courses/:id" element={<CourseDetails/>}/><Route path="/assignments" element={<AssignmentsPage/>}/><Route path="/assignments/new" element={<AssignmentForm/>}/><Route path="/assignments/:id/edit" element={<AssignmentForm/>}/><Route path="/assignments/:id" element={<AssignmentDetails/>}/><Route path="*" element={<Empty description="Страница не найдена"/>}/></Routes></Shell> }
-export function App() { return <BrowserRouter><AntApp><AppRoutes/></AntApp></BrowserRouter> }
+function AppRoutes() {
+  return (
+    <Shell>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/courses/:id" element={<CourseDetails />} />
+        <Route path="/assignments" element={<AssignmentsPage />} />
+        <Route path="/assignments/new" element={<AssignmentForm />} />
+        <Route path="/assignments/:id/edit" element={<AssignmentForm />} />
+        <Route path="/assignments/:id" element={<AssignmentDetails />} />
+        <Route path="*" element={<Empty description="Страница не найдена" />} />
+      </Routes>
+    </Shell>
+  );
+}
+export function App() {
+  return (
+    <BrowserRouter>
+      <AntApp>
+        <AppRoutes />
+      </AntApp>
+    </BrowserRouter>
+  );
+}
