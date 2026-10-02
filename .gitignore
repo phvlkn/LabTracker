@@ -5,6 +5,8 @@ dist/
 !.env.example
 __pycache__/
 *.py[cod]
+.venv/
+.pytest_cache/
 .DS_Store
 
 # Методичка и ТЗ хранятся локально и не входят в исходный код проекта.

@@ -1,3 +1,5 @@
-# Backend
+# Backend LabTracker
 
-Серверная часть будет реализована в лабораторной работе №2 на FastAPI, PostgreSQL и SQLAlchemy.
+Backend лабораторной работы №2: FastAPI, PostgreSQL, SQLAlchemy и Pydantic.
+
+Подробная инструкция запуска находится в корневом [`README.md`](../README.md).

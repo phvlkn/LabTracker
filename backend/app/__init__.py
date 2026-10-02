@@ -1,0 +1,2 @@
+"""Backend приложения LabTracker."""
+
