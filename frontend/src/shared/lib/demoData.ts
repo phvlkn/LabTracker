@@ -1,6 +1,7 @@
-import type { Assignment, Course } from "./types";
+import type { Assignment } from "../../entities/assignment/model";
+import type { Course } from "../../entities/course/model";
 
-export const courses: Course[] = [
+export const initialCourses: Course[] = [
   {
     id: 1,
     title: "Fullstack-разработка",
@@ -21,37 +22,37 @@ export const courses: Course[] = [
   },
 ];
 
-export const assignments: Assignment[] = [
+export const initialAssignments: Assignment[] = [
   {
     id: 1,
     courseId: 1,
-    title: "Лабораторная работа №1",
-    description: "Каркас интерфейса LabTracker и маршрутизация экранов.",
+    title: "Лабораторная работа №3",
+    description: "Архитектура frontend и динамический интерфейс.",
     type: "lab",
     status: "in_progress",
-    deadline: "2026-09-14T18:00:00",
+    deadline: "2026-10-12T18:00:00+03:00",
     maxGrade: 10,
     grade: null,
   },
   {
     id: 2,
     courseId: 1,
-    title: "Домашнее задание: REST API",
-    description: "Спроектировать контракт API для трекера.",
-    type: "homework",
+    title: "Лабораторная работа №4",
+    description: "Аутентификация, JWT и защищённые маршруты.",
+    type: "lab",
     status: "not_started",
-    deadline: "2026-09-17T23:59:00",
+    deadline: "2026-10-17T18:00:00+03:00",
     maxGrade: 10,
     grade: null,
   },
   {
     id: 3,
     courseId: 2,
-    title: "Лабораторная работа №2",
-    description: "Нормализация таблиц и SQL-запросы.",
-    type: "lab",
+    title: "Нормализация схемы",
+    description: "Привести учебную схему к третьей нормальной форме.",
+    type: "homework",
     status: "submitted",
-    deadline: "2026-09-08T18:00:00",
+    deadline: "2026-10-07T18:00:00+03:00",
     maxGrade: 10,
     grade: null,
   },
@@ -62,7 +63,7 @@ export const assignments: Assignment[] = [
     description: "Ключи, индексы и транзакции.",
     type: "other",
     status: "graded",
-    deadline: "2026-09-05T10:00:00",
+    deadline: "2026-10-05T10:00:00+03:00",
     maxGrade: 20,
     grade: 18.5,
   },
@@ -73,18 +74,7 @@ export const assignments: Assignment[] = [
     description: "Краткий разбор модели TCP/IP.",
     type: "homework",
     status: "in_progress",
-    deadline: "2026-09-09T23:59:00",
-    maxGrade: 10,
-    grade: null,
-  },
-  {
-    id: 6,
-    courseId: 3,
-    title: "Лабораторная работа №1",
-    description: "Анализ трафика в локальной сети.",
-    type: "lab",
-    status: "not_started",
-    deadline: "2026-09-25T18:00:00",
+    deadline: "2026-10-08T23:59:00+03:00",
     maxGrade: 10,
     grade: null,
   },
