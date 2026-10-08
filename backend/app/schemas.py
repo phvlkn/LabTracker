@@ -2,7 +2,63 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str = Field(min_length=2, max_length=80)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: EmailStr) -> str:
+        return str(value).lower()
+
+    @field_validator("username")
+    @classmethod
+    def username_must_not_be_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Имя пользователя не должно быть пустым")
+        return value
+
+
+class UserRead(BaseModel):
+    id: int
+    email: EmailStr
+    username: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: EmailStr) -> str:
+        return str(value).lower()
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(min_length=32)
+
+
+class LogoutRequest(RefreshRequest):
+    pass
+
+
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class AuthResponse(TokenPair):
+    user: UserRead
 
 
 class AssignmentType(str, Enum):
@@ -123,4 +179,3 @@ class AssignmentRead(AssignmentBase):
 
 class CourseDetail(CourseRead):
     assignments: list[AssignmentRead]
-

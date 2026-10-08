@@ -7,8 +7,13 @@ from sqlalchemy.orm import Session, selectinload
 from app import models, schemas
 
 
-def get_course_or_404(db: Session, course_id: int) -> models.Course:
-    course = db.get(models.Course, course_id)
+def get_course_or_404(db: Session, course_id: int, user_id: int) -> models.Course:
+    course = db.scalar(
+        select(models.Course).where(
+            models.Course.id == course_id,
+            models.Course.owner_id == user_id,
+        )
+    )
     if course is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -17,16 +22,27 @@ def get_course_or_404(db: Session, course_id: int) -> models.Course:
     return course
 
 
-def list_courses(db: Session) -> list[models.Course]:
-    query = select(models.Course).order_by(models.Course.created_at.desc())
+def list_courses(db: Session, user_id: int) -> list[models.Course]:
+    query = (
+        select(models.Course)
+        .where(models.Course.owner_id == user_id)
+        .order_by(models.Course.created_at.desc())
+    )
     return list(db.scalars(query).all())
 
 
-def get_course_with_assignments(db: Session, course_id: int) -> models.Course:
+def get_course_with_assignments(
+    db: Session,
+    course_id: int,
+    user_id: int,
+) -> models.Course:
     query = (
         select(models.Course)
         .options(selectinload(models.Course.assignments))
-        .where(models.Course.id == course_id)
+        .where(
+            models.Course.id == course_id,
+            models.Course.owner_id == user_id,
+        )
     )
     course = db.scalar(query)
     if course is None:
@@ -37,8 +53,12 @@ def get_course_with_assignments(db: Session, course_id: int) -> models.Course:
     return course
 
 
-def create_course(db: Session, data: schemas.CourseCreate) -> models.Course:
-    course = models.Course(**data.model_dump())
+def create_course(
+    db: Session,
+    data: schemas.CourseCreate,
+    user_id: int,
+) -> models.Course:
+    course = models.Course(**data.model_dump(), owner_id=user_id)
     db.add(course)
     db.commit()
     db.refresh(course)
@@ -49,8 +69,9 @@ def update_course(
     db: Session,
     course_id: int,
     data: schemas.CourseUpdate,
+    user_id: int,
 ) -> models.Course:
-    course = get_course_or_404(db, course_id)
+    course = get_course_or_404(db, course_id, user_id)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(course, field, value)
     db.commit()
@@ -58,14 +79,25 @@ def update_course(
     return course
 
 
-def delete_course(db: Session, course_id: int) -> None:
-    course = get_course_or_404(db, course_id)
+def delete_course(db: Session, course_id: int, user_id: int) -> None:
+    course = get_course_or_404(db, course_id, user_id)
     db.delete(course)
     db.commit()
 
 
-def get_assignment_or_404(db: Session, assignment_id: int) -> models.Assignment:
-    assignment = db.get(models.Assignment, assignment_id)
+def get_assignment_or_404(
+    db: Session,
+    assignment_id: int,
+    user_id: int,
+) -> models.Assignment:
+    assignment = db.scalar(
+        select(models.Assignment)
+        .join(models.Course)
+        .where(
+            models.Assignment.id == assignment_id,
+            models.Course.owner_id == user_id,
+        )
+    )
     if assignment is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -80,11 +112,16 @@ def list_assignments(
     assignment_status: schemas.AssignmentStatus | None,
     assignment_type: schemas.AssignmentType | None,
     sort: schemas.AssignmentSort,
+    user_id: int,
 ) -> list[models.Assignment]:
-    query: Select[tuple[models.Assignment]] = select(models.Assignment)
+    query: Select[tuple[models.Assignment]] = (
+        select(models.Assignment)
+        .join(models.Course)
+        .where(models.Course.owner_id == user_id)
+    )
 
     if course_id is not None:
-        get_course_or_404(db, course_id)
+        get_course_or_404(db, course_id, user_id)
         query = query.where(models.Assignment.course_id == course_id)
     if assignment_status is not None:
         query = query.where(models.Assignment.status == assignment_status)
@@ -112,8 +149,9 @@ def validate_grade(grade: Decimal | None, max_grade: int) -> None:
 def create_assignment(
     db: Session,
     data: schemas.AssignmentCreate,
+    user_id: int,
 ) -> models.Assignment:
-    get_course_or_404(db, data.course_id)
+    get_course_or_404(db, data.course_id, user_id)
     validate_grade(data.grade, data.max_grade)
     assignment = models.Assignment(**data.model_dump())
     db.add(assignment)
@@ -126,12 +164,13 @@ def update_assignment(
     db: Session,
     assignment_id: int,
     data: schemas.AssignmentUpdate,
+    user_id: int,
 ) -> models.Assignment:
-    assignment = get_assignment_or_404(db, assignment_id)
+    assignment = get_assignment_or_404(db, assignment_id, user_id)
     changes = data.model_dump(exclude_unset=True)
 
     if "course_id" in changes:
-        get_course_or_404(db, changes["course_id"])
+        get_course_or_404(db, changes["course_id"], user_id)
 
     next_grade = changes.get("grade", assignment.grade)
     next_max_grade = changes.get("max_grade", assignment.max_grade)
@@ -144,7 +183,7 @@ def update_assignment(
     return assignment
 
 
-def delete_assignment(db: Session, assignment_id: int) -> None:
-    assignment = get_assignment_or_404(db, assignment_id)
+def delete_assignment(db: Session, assignment_id: int, user_id: int) -> None:
+    assignment = get_assignment_or_404(db, assignment_id, user_id)
     db.delete(assignment)
     db.commit()

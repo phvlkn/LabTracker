@@ -1,5 +1,5 @@
 # Backend LabTracker
 
-Backend лабораторной работы №2: FastAPI, PostgreSQL, SQLAlchemy и Pydantic.
+Backend лабораторных работ №2 и №4: FastAPI, PostgreSQL, SQLAlchemy, Pydantic, Argon2 и JWT.
 
-Подробная инструкция запуска находится в корневом [`README.md`](../README.md).
+Настройка, запуск, структура проекта и сценарий защиты описаны в корневом [`README.md`](../README.md) и [`docs/DEFENSE.md`](../docs/DEFENSE.md).
